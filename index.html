@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUD with LocalStorage</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <h2 class="text-center mb-4">Simple CRUD App with LocalStorage</h2>
+
+      <!-- Form -->
+      <form
+        id="crudForm"
+        action="javascript:void(0);"
+        class="bg-white p-4 rounded shadow-sm needs-validation"
+        novalidate
+      >
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="name" class="form-label">Name *</label>
+            <input type="text" class="form-control" id="name" required />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email *</label>
+            <input type="email" class="form-control" id="email" required />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="password" class="form-label">Password *</label>
+            <div class="input-group">
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                required
+              />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                id="togglePassword"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="birthdate" class="form-label">Birthdate *</label>
+            <input type="date" class="form-control" id="birthdate" required />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="phone" class="form-label">Phone Number *</label>
+            <input type="tel" class="form-control" id="phone" required />
+            <div class="invalid-feedback">
+              Please enter a valid 10-digit phone number.
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Gender</label><br />
+            <div class="form-check form-check-inline">
+              <input
+                type="radio"
+                name="gender"
+                id="male"
+                value="Male"
+                class="form-check-input"
+                required
+              />
+              <label for="male" class="form-check-label">Male</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                type="radio"
+                name="gender"
+                id="female"
+                value="Female"
+                class="form-check-input"
+              />
+              <label for="female" class="form-check-label">Female</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                type="radio"
+                name="gender"
+                id="other"
+                value="Other"
+                class="form-check-input"
+              />
+              <label for="other" class="form-check-label">Other</label>
+              
+            </div>
+          </div>
+          <div class="col-md-12 mb-3">
+            <label class="form-label">Hobbies</label><br />
+            <div class="form-check form-check-inline">
+              <input
+                type="checkbox"
+                id="cricket"
+                value="Cricket"
+                class="form-check-input hobby"
+              />
+              <label for="cricket" class="form-check-label">Cricket</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                type="checkbox"
+                id="music"
+                value="Music"
+                class="form-check-input hobby"
+              />
+              <label for="music" class="form-check-label">Music</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                type="checkbox"
+                id="study"
+                value="Study"
+                class="form-check-input hobby"
+              />
+              <label for="study" class="form-check-label">Study</label>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="country" class="form-label">Country</label>
+            <select id="country" class="form-select">
+              <option value="">Choose...</option>
+              <option value="India">India</option>
+              <option value="USA">USA</option>
+              <option value="UK">UK</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="bio" class="form-label">Bio</label>
+            <textarea id="bio" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <input type="hidden" id="hiddenIndex" />
+      </form>
+
+      <!-- Table -->
+      <div class="table-responsive mt-4">
+        <table class="table table-bordered table-hover bg-white">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Password</th>
+              <th>Birthdate</th>
+              <th>Phone</th>
+              <th>Gender</th>
+              <th>Hobbies</th>
+              <th>Country</th>
+              <th>Bio</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordList"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      const form = document.getElementById("crudForm");
+      const recordList = document.getElementById("recordList");
+
+      const getData = () => JSON.parse(localStorage.getItem("users")) || [];
+
+      const showData = () => {
+        const users = getData();
+        recordList.innerHTML = "";
+        users.forEach((user, index) => {
+          recordList.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>${user.password}</td>
+            <td>${user.birthdate}</td>
+            <td>${user.phone}</td>
+            <td>${user.gender}</td>
+            <td>${user.hobbies.join(", ")}</td>
+            <td>${user.country}</td>
+            <td>${user.bio}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick="editUser(${index})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser(${index})">Delete</button>
+            </td>
+          </tr>
+        `;
+        });
+      };
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (!form.checkValidity()) {
+          form.classList.add("was-validated");
+          return;
+        }
+
+        const users = getData();
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const birthdate = document.getElementById("birthdate").value;
+        const phone = document.getElementById("phone").value;
+        const gender =
+          document.querySelector("input[name='gender']:checked")?.value || "";
+        const hobbies = Array.from(
+          document.querySelectorAll(".hobby:checked")
+        ).map((c) => c.value);
+        const country = document.getElementById("country").value;
+        const bio = document.getElementById("bio").value;
+        const index = document.getElementById("hiddenIndex").value;
+
+        const duplicate = users.some(
+          (user, i) => user.email === email && i != index
+        );
+        if (duplicate) {
+          alert("Duplicate entry! Email already exists.");
+          form.reset();
+          return;
+        }
+
+        const newUser = {
+          name,
+          email,
+          password,
+          birthdate,
+          phone,
+          gender,
+          hobbies,
+          country,
+          bio,
+        };
+
+        if (index === "") {
+          users.push(newUser);
+        } else {
+          users[index] = newUser;
+          document.getElementById("hiddenIndex").value = "";
+        }
+
+        localStorage.setItem("users", JSON.stringify(users));
+        form.reset();
+        form.classList.remove("was-validated");
+        showData();
+      });
+
+      function editUser(index) {
+        const users = getData();
+        const user = users[index];
+        document.getElementById("name").value = user.name;
+        document.getElementById("email").value = user.email;
+        document.getElementById("password").value = user.password;
+        document.getElementById("birthdate").value = user.birthdate;
+        document.getElementById("phone").value = user.phone;
+        document.getElementById(user.gender.toLowerCase()).checked = true;
+        document.querySelectorAll(".hobby").forEach((cb) => {
+          cb.checked = user.hobbies.includes(cb.value);
+        });
+        document.getElementById("country").value = user.country;
+        document.getElementById("bio").value = user.bio;
+        document.getElementById("hiddenIndex").value = index;
+      }
+
+      function deleteUser(index) {
+        if (!confirm("Are you sure you want to delete this record?")) return;
+        const users = getData();
+        users.splice(index, 1);
+        localStorage.setItem("users", JSON.stringify(users));
+        showData();
+      }
+
+      // Show/Hide password toggle
+      document
+        .getElementById("togglePassword")
+        .addEventListener("click", function () {
+          const pwdInput = document.getElementById("password");
+          const type =
+            pwdInput.getAttribute("type") === "password" ? "text" : "password";
+          pwdInput.setAttribute("type", type);
+          this.textContent = type === "password" ? "Show" : "Hide";
+        });
+
+      showData();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
