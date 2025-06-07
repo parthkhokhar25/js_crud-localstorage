@@ -8,6 +8,17 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <style>
+      .hobby.is-invalid + label {
+        color: red !important;
+      }
+
+      .hobby-error {
+        color: red;
+        font-size: 0.875em;
+        margin-top: 5px;
+      }
+    </style>
   </head>
   <body class="bg-light">
     <div class="container mt-5">
@@ -16,7 +27,6 @@
       <!-- Form -->
       <form
         id="crudForm"
-        action="javascript:void(0);"
         class="bg-white p-4 rounded shadow-sm needs-validation"
         novalidate
       >
@@ -24,14 +34,18 @@
           <div class="col-md-6 mb-3">
             <label for="name" class="form-label">Name *</label>
             <input type="text" class="form-control" id="name" required />
+            <div class="invalid-feedback">Name is required.</div>
           </div>
+
           <div class="col-md-6 mb-3">
             <label for="email" class="form-label">Email *</label>
             <input type="email" class="form-control" id="email" required />
+            <div class="invalid-feedback">Valid email is required.</div>
           </div>
+
           <div class="col-md-6 mb-3">
             <label for="password" class="form-label">Password *</label>
-            <div class="input-group">
+            <div class="input-group has-validation">
               <input
                 type="password"
                 class="form-control"
@@ -45,21 +59,32 @@
               >
                 Show
               </button>
+              <div class="invalid-feedback">Password is required.</div>
             </div>
           </div>
+
           <div class="col-md-6 mb-3">
             <label for="birthdate" class="form-label">Birthdate *</label>
             <input type="date" class="form-control" id="birthdate" required />
+            <div class="invalid-feedback">Birthdate is required.</div>
           </div>
+
           <div class="col-md-6 mb-3">
             <label for="phone" class="form-label">Phone Number *</label>
-            <input type="tel" class="form-control" id="phone" required />
+            <input
+              type="tel"
+              class="form-control"
+              id="phone"
+              pattern="^[0-9]{10}$"
+              required
+            />
             <div class="invalid-feedback">
               Please enter a valid 10-digit phone number.
             </div>
           </div>
+
           <div class="col-md-6 mb-3">
-            <label class="form-label">Gender</label><br />
+            <label class="form-label">Gender *</label><br />
             <div class="form-check form-check-inline">
               <input
                 type="radio"
@@ -90,11 +115,12 @@
                 class="form-check-input"
               />
               <label for="other" class="form-check-label">Other</label>
-              
             </div>
+            <div class="invalid-feedback d-block">Please select a gender.</div>
           </div>
+
           <div class="col-md-12 mb-3">
-            <label class="form-label">Hobbies</label><br />
+            <label class="form-label">Hobbies *</label><br />
             <div class="form-check form-check-inline">
               <input
                 type="checkbox"
@@ -122,19 +148,31 @@
               />
               <label for="study" class="form-check-label">Study</label>
             </div>
+            <div id="hobbyError" class="hobby-error d-none">
+              Please select at least one hobby.
+            </div>
           </div>
+
           <div class="col-md-6 mb-3">
-            <label for="country" class="form-label">Country</label>
-            <select id="country" class="form-select">
+            <label for="country" class="form-label">Country *</label>
+            <select id="country" class="form-select" required>
               <option value="">Choose...</option>
               <option value="India">India</option>
               <option value="USA">USA</option>
               <option value="UK">UK</option>
             </select>
+            <div class="invalid-feedback">Please select your country.</div>
           </div>
+
           <div class="col-md-6 mb-3">
-            <label for="bio" class="form-label">Bio</label>
-            <textarea id="bio" class="form-control" rows="2"></textarea>
+            <label for="bio" class="form-label">Bio *</label>
+            <textarea
+              id="bio"
+              class="form-control"
+              rows="2"
+              required
+            ></textarea>
+            <div class="invalid-feedback">Bio is required.</div>
           </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
@@ -198,10 +236,27 @@
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
-        if (!form.checkValidity()) {
-          form.classList.add("was-validated");
+        form.classList.add("was-validated");
+
+        const selectedHobbies = document.querySelectorAll(".hobby:checked");
+        const hobbyError = document.getElementById("hobbyError");
+
+        if (selectedHobbies.length === 0) {
+          hobbyError.classList.remove("d-none");
+          document.querySelectorAll(".hobby").forEach((cb) => {
+            cb.classList.add("is-invalid");
+            cb.setAttribute("aria-invalid", "true");
+          });
           return;
+        } else {
+          hobbyError.classList.add("d-none");
+          document.querySelectorAll(".hobby").forEach((cb) => {
+            cb.classList.remove("is-invalid");
+            cb.removeAttribute("aria-invalid");
+          });
         }
+
+        if (!form.checkValidity()) return;
 
         const users = getData();
         const name = document.getElementById("name").value.trim();
@@ -211,9 +266,7 @@
         const phone = document.getElementById("phone").value;
         const gender =
           document.querySelector("input[name='gender']:checked")?.value || "";
-        const hobbies = Array.from(
-          document.querySelectorAll(".hobby:checked")
-        ).map((c) => c.value);
+        const hobbies = Array.from(selectedHobbies).map((c) => c.value);
         const country = document.getElementById("country").value;
         const bio = document.getElementById("bio").value;
         const index = document.getElementById("hiddenIndex").value;
@@ -224,6 +277,7 @@
         if (duplicate) {
           alert("Duplicate entry! Email already exists.");
           form.reset();
+          form.classList.remove("was-validated");
           return;
         }
 
@@ -277,7 +331,6 @@
         showData();
       }
 
-      // Show/Hide password toggle
       document
         .getElementById("togglePassword")
         .addEventListener("click", function () {
@@ -287,6 +340,13 @@
           pwdInput.setAttribute("type", type);
           this.textContent = type === "password" ? "Show" : "Hide";
         });
+
+      form.addEventListener("reset", () => {
+        document.querySelectorAll(".hobby").forEach((cb) => {
+          cb.classList.remove("is-invalid");
+        });
+        document.getElementById("hobbyError").classList.add("d-none");
+      });
 
       showData();
     </script>
